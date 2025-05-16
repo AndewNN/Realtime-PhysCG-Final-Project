@@ -20,11 +20,6 @@ clock = pg.time.Clock()
 running = True
 dt = 0
 
-# cloth simulation setup
-# cloth = something()
-
-TARGET_FPS = 60
-
 st = time.time()
 
 while running:
@@ -51,13 +46,8 @@ while running:
     mainUI.update()
     mainUI.draw()
 
-    # flip() the display to put your work on screen
     pg.display.flip()
 
-    # limits FPS to 60
-    # dt is delta time in seconds since last frame, used for framerate-
-    # independent physics.
-    # dt = clock.tick(60) / 1000
     tt = time.time()
     print("FPS: ", 1 / (tt - st))
     st = tt

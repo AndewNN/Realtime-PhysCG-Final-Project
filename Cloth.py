@@ -44,7 +44,7 @@ class Cloth(nn.Module):
                 tt = time.time()
                 del_t = tt - self.last_t
                 self.last_t = tt
-            del_t *= 150
+            del_t *= 13
             force = torch.zeros_like(self.pos, device=self.pos.device)
             force[:, :, 0] = -self.gravity * self.mass
             for ii, jj in self.dir:
@@ -70,7 +70,6 @@ class Cloth(nn.Module):
             # vel = 2/(2+torch.exp(-5*vel)) - 2/3
 
             energy = (vel**2).sum()
-            print("Energy: ", energy.item(), self.energy_l.item(), self.pos.device)
             energy_n = min(energy, self.energy_l) * self.decay
 
             pp = 0.8 if self.method == "verlet" else 1
@@ -78,6 +77,8 @@ class Cloth(nn.Module):
 
             vel *= energy_n / (energy + 1e-6)
             self.energy_l = self.energy_l * (1-self.alpha) + (energy_n) * self.alpha
+
+            print("Energy: ", energy.item(), self.energy_l.item(), self.pos.device)
 
             vel_dir = torch.nn.functional.normalize(newpos - self.pos, dim=2)
             newpos = self.pos + vel_dir * vel
@@ -89,19 +90,19 @@ class Cloth(nn.Module):
             # Convert positions directly to image array
             img_size = (804, 804, 3)  # Define your desired output size
             frame = np.zeros(img_size, dtype=np.uint8)
-            frame_t = torch.zeros(img_size, dtype=torch.uint8).to(self.device)
+            frame_t = torch.zeros(img_size, dtype=torch.uint8).to("cuda")
 
             # Scale positions to image coordinates
             
-            x = self.pos[:, :, 1].clone()
-            y = self.pos[:, :, 0].clone()
+            x = self.pos[:, :, 1].clone().to("cuda")
+            y = self.pos[:, :, 0].clone().to("cuda")
             x = ((x / self.width) * (img_size[1] - 20) + 10)
             y = ((y / self.height) * (img_size[0] - 700) + 690)
 
             x = torch.clamp(x, 0, img_size[1] - 1).long()
             y = torch.clamp(y, 0, img_size[0] - 1).long()
 
-            frame_t[y, x] = torch.tensor([0, 255, 0], dtype=torch.uint8, device=self.device)
+            frame_t[y, x] = torch.tensor([0, 255, 0], dtype=torch.uint8, device="cuda")
 
             frame_t = frame_t[2:802, 2:802] 
 
